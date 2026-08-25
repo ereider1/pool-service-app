@@ -24,6 +24,23 @@ create table if not exists public.visits (
   created_at timestamptz not null default now()
 );
 
+-- Keep existing installations compatible when the table predates the status field.
+alter table public.visits
+  add column if not exists status text not null default 'normal';
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'visits_status_check'
+      and conrelid = 'public.visits'::regclass
+  ) then
+    alter table public.visits
+      add constraint visits_status_check
+      check (status in ('normal', 'check', 'needs_attention'));
+  end if;
+end $$;
+
 create table if not exists public.visit_chemicals (
   id uuid primary key default gen_random_uuid(),
   visit_id uuid not null references public.visits(id) on delete cascade,
