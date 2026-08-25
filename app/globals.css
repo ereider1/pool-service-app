@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --navy: #0d4261; --blue: #0b83df; --ink: #17233b; --muted: #5d7390; --line: #d3e0eb; --page: #f6f9fc; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+input[type=number]::-webkit-inner-spin-button { opacity: .6; }
+.focus-ring:focus-visible { outline: 3px solid rgba(11,131,223,.35); outline-offset: 2px; }

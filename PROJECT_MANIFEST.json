@@ -1,0 +1,20 @@
+{
+  "name": "pool-service",
+  "purpose": "Pool service technician capture + owner admin dashboard",
+  "supabase": {
+    "organization": "ereider1",
+    "project": "pool-service",
+    "region": "ap-southeast-1"
+  },
+  "routes": [
+    "/",
+    "/admin",
+    "/admin/visits/[id]"
+  ],
+  "files": [
+    "README.md",
+    "VSCODE_BUILD_PROMPT.md",
+    "supabase/schema.sql",
+    ".env.example"
+  ]
+}
