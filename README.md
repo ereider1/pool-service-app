@@ -122,7 +122,7 @@ Technician can take multiple photos.
 Repeatable rows:
 - Chemical
 - Amount
-- Unit: lbs / oz / gal / other
+- Unit: kg / oz / gal / other
 - Remove row
 - + Add Chemical
 

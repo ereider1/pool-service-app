@@ -46,9 +46,27 @@ create table if not exists public.visit_chemicals (
   visit_id uuid not null references public.visits(id) on delete cascade,
   chemical text not null,
   amount numeric(10,2) not null check (amount >= 0),
-  unit text not null default 'lbs'
-    check (unit in ('lbs','oz','gal','other'))
+  unit text not null default 'kg'
+    check (unit in ('kg','oz','gal','other'))
 );
+
+alter table public.visit_chemicals
+  alter column unit set default 'kg';
+
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint
+    where conname = 'visit_chemicals_unit_check'
+      and conrelid = 'public.visit_chemicals'::regclass
+  ) then
+    alter table public.visit_chemicals drop constraint visit_chemicals_unit_check;
+  end if;
+end $$;
+
+alter table public.visit_chemicals
+  add constraint visit_chemicals_unit_check
+  check (unit in ('kg','oz','gal','other','lbs'));
 
 create table if not exists public.visit_photos (
   id uuid primary key default gen_random_uuid(),
@@ -96,6 +114,6 @@ create policy "admin reads photo metadata" on public.visit_photos for select to 
   using ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
 
 create policy "technician uploads pool photos" on storage.objects for insert to anon, authenticated
-  with check (bucket_id = 'pool-photos' and name ~ '^[0-9a-f-]{36}/[a-z_]+/[0-9a-f-]{36}\.jpg$');
+  with check (bucket_id = 'pool-photos' and name ~ '^[0-9a-f-]{36}/[a-z_]+/[0-9a-f-]{36}\.(jpg|mov|mp4|webm)$');
 create policy "admin reads pool photos" on storage.objects for select to authenticated
   using (bucket_id = 'pool-photos' and (select auth.jwt()->'app_metadata'->>'role') = 'admin');
