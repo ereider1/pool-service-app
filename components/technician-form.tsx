@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/image';
 
@@ -12,6 +12,7 @@ function PhotoTile({ file, onRemove }: { file: File; onRemove: () => void }) { c
 
 export default function TechnicianForm() {
   const supabase = useMemo(() => createClient(), []); const stripRef = useRef<HTMLInputElement>(null); const generalRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { stripRef.current?.removeAttribute('capture'); }, []);
   const [ph, setPh] = useState(''); const [chlorine, setChlorine] = useState(''); const [strip, setStrip] = useState<File | null>(null); const [photos, setPhotos] = useState<File[]>([]); const [chemicals, setChemicals] = useState<Chemical[]>([]); const [notes, setNotes] = useState(''); const [errors, setErrors] = useState<Record<string,string>>({}); const [saving, setSaving] = useState(false); const [saved, setSaved] = useState(false);
   const reset = () => { setPh(''); setChlorine(''); setStrip(null); setPhotos([]); setChemicals([]); setNotes(''); setErrors({}); setSaved(false); };
   const validate = () => { const next: Record<string,string> = {}; const p = Number(ph), c = Number(chlorine); if (!ph || !Number.isFinite(p) || p < 0 || p > 14) next.ph = 'Enter a pH between 0 and 14.'; if (!chlorine || !Number.isFinite(c) || c < 0) next.chlorine = 'Enter a chlorine value of 0 or more.'; if (!strip) next.strip = 'A test-strip photo is required.'; chemicals.forEach((item, i) => { if ((item.chemical || item.amount) && (!item.chemical || !item.amount || Number(item.amount) < 0)) next[`chemical-${i}`] = 'Add a name and valid amount.'; }); setErrors(next); return Object.keys(next).length === 0; };
