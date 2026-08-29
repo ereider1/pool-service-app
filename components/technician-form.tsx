@@ -20,7 +20,7 @@ export default function TechnicianForm() {
   const handleGeneral = async (files: FileList | null) => { if (!files) return; const media = await Promise.all(Array.from(files).map(file => compressImage(file))); setPhotos(old => [...old, ...media]); };
   const save = async () => { if (!validate() || !strip) return; setSaving(true); setErrors({}); try {
     const status = Number(ph) < 7.2 || Number(ph) > 7.8 || Number(chlorine) < 1 || Number(chlorine) > 3 ? 'check' : 'normal';
-    const visitId = crypto.randomUUID(); const { error: visitError } = await supabase.from('visits').insert({ id: visitId, ph: Number(ph), chlorine: Number(chlorine), notes: notes.trim() || null }); if (visitError) throw visitError;
+    const visitId = crypto.randomUUID(); const { error: visitError } = await supabase.from('visits').insert({ id: visitId, ph: Number(ph), chlorine: Number(chlorine), notes: notes.trim() || null, status }); if (visitError) throw visitError;
     const all = [{ file: strip, type: 'test_strip' as const }, ...photos.map(file => ({ file, type: 'other' as const }))]; const metadata: { visit_id:string; photo_type:string; storage_path:string }[] = [];
     for (const { file, type } of all) { const path = `${visitId}/${type}/${crypto.randomUUID()}.jpg`; const { error } = await supabase.storage.from('pool-photos').upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false }); if (error) throw error; metadata.push({ visit_id: visitId, photo_type: type, storage_path: path }); }
     if (metadata.length) { const { error } = await supabase.from('visit_photos').insert(metadata); if (error) throw error; }
