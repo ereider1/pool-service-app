@@ -113,7 +113,22 @@ create policy "technician creates photo metadata" on public.visit_photos for ins
 create policy "admin reads photo metadata" on public.visit_photos for select to authenticated
   using ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
 
+create policy "admin updates visits" on public.visits for update to authenticated
+  using ((select auth.jwt()->'app_metadata'->>'role') = 'admin')
+  with check ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
+create policy "admin deletes visits" on public.visits for delete to authenticated
+  using ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
+create policy "admin updates chemicals" on public.visit_chemicals for update to authenticated
+  using ((select auth.jwt()->'app_metadata'->>'role') = 'admin')
+  with check ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
+create policy "admin deletes chemicals" on public.visit_chemicals for delete to authenticated
+  using ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
+create policy "admin deletes photo metadata" on public.visit_photos for delete to authenticated
+  using ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
+
 create policy "technician uploads pool photos" on storage.objects for insert to anon, authenticated
   with check (bucket_id = 'pool-photos' and name ~ '^[0-9a-f-]{36}/[a-z_]+/[0-9a-f-]{36}\.(jpg|mov|mp4|webm)$');
 create policy "admin reads pool photos" on storage.objects for select to authenticated
+  using (bucket_id = 'pool-photos' and (select auth.jwt()->'app_metadata'->>'role') = 'admin');
+create policy "admin deletes pool photos" on storage.objects for delete to authenticated
   using (bucket_id = 'pool-photos' and (select auth.jwt()->'app_metadata'->>'role') = 'admin');
