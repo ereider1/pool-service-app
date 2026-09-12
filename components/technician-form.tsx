@@ -14,16 +14,100 @@ const today = new Intl.DateTimeFormat('en-US', {
   year: 'numeric' 
 }).format(new Date());
 
-type ChecklistItem = { id: string; label: string; emoji: string };
+type ChecklistItem = { id: string; label: string };
 
 const CHECKLIST_ITEMS: ChecklistItem[] = [
-  { id: 'check_levels', label: 'Check Levels', emoji: '🧪' },
-  { id: 'skim', label: 'Skim', emoji: '🕸️' },
-  { id: 'vacuum', label: 'Vacuum', emoji: '🌀' },
-  { id: 'brush', label: 'Brush', emoji: '🧹' },
-  { id: 'empty_basket', label: 'Empty Basket', emoji: '🧺' },
-  { id: 'backwash_filter', label: 'Backwash Filter', emoji: '🔄' },
+  { id: 'check_levels', label: 'Check Levels' },
+  { id: 'skim', label: 'Skim' },
+  { id: 'vacuum', label: 'Vacuum' },
+  { id: 'brush', label: 'Brush' },
+  { id: 'empty_basket', label: 'Empty Basket' },
+  { id: 'backwash_filter', label: 'Backwash Filter' },
 ];
+
+const COOL_PALETTE_CLEANING: Record<string, { bg: string; border: string; text: string; dot: string; hoverBg: string }> = {
+  check_levels: {
+    bg: 'bg-[#f0f9ff]', // Light sky blue
+    border: 'border-[#bae6fd]',
+    text: 'text-[#0369a1]',
+    dot: 'bg-[#0284c7]',
+    hoverBg: 'hover:bg-[#e0f2fe]',
+  },
+  skim: {
+    bg: 'bg-[#ecfdf5]', // Light mint green/teal
+    border: 'border-[#a7f3d0]',
+    text: 'text-[#047857]',
+    dot: 'bg-[#059669]',
+    hoverBg: 'hover:bg-[#d1fae5]',
+  },
+  vacuum: {
+    bg: 'bg-[#f5f3ff]', // Light lavender/violet
+    border: 'border-[#ddd6fe]',
+    text: 'text-[#6d28d9]',
+    dot: 'bg-[#7c3aed]',
+    hoverBg: 'hover:bg-[#ede9fe]',
+  },
+  brush: {
+    bg: 'bg-[#f0fdfa]', // Light teal/cyan
+    border: 'border-[#99f6e4]',
+    text: 'text-[#0f766e]',
+    dot: 'bg-[#0d9488]',
+    hoverBg: 'hover:bg-[#ccfbf1]',
+  },
+  empty_basket: {
+    bg: 'bg-[#eef2ff]', // Light indigo
+    border: 'border-[#c7d2fe]',
+    text: 'text-[#4338ca]',
+    dot: 'bg-[#4f46e5]',
+    hoverBg: 'hover:bg-[#e0e7ff]',
+  },
+  backwash_filter: {
+    bg: 'bg-[#fdf2f8]', // Light pink/magenta
+    border: 'border-[#fbcfe8]',
+    text: 'text-[#be185d]',
+    dot: 'bg-[#db2777]',
+    hoverBg: 'hover:bg-[#fce7f3]',
+  },
+};
+
+const COOL_PALETTE_CHEMICALS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+  tablets: {
+    bg: 'bg-[#f0f9ff]',
+    border: 'border-[#bae6fd]',
+    text: 'text-[#0369a1]',
+    dot: 'bg-[#0284c7]',
+  },
+  hcl: {
+    bg: 'bg-[#ecfdf5]',
+    border: 'border-[#a7f3d0]',
+    text: 'text-[#047857]',
+    dot: 'bg-[#059669]',
+  },
+  granules: {
+    bg: 'bg-[#f5f3ff]',
+    border: 'border-[#ddd6fe]',
+    text: 'text-[#6d28d9]',
+    dot: 'bg-[#7c3aed]',
+  },
+  soda_ash: {
+    bg: 'bg-[#f0fdfa]',
+    border: 'border-[#99f6e4]',
+    text: 'text-[#0f766e]',
+    dot: 'bg-[#0d9488]',
+  },
+  other: {
+    bg: 'bg-[#eef2ff]',
+    border: 'border-[#c7d2fe]',
+    text: 'text-[#4338ca]',
+    dot: 'bg-[#4f46e5]',
+  },
+  no_chemicals: {
+    bg: 'bg-slate-50',
+    border: 'border-slate-200',
+    text: 'text-slate-600',
+    dot: 'bg-slate-400',
+  },
+};
 
 function Section({ number, title, detail, children }: { number: string; title: string; detail?: string; children: React.ReactNode }) { 
   return (
@@ -464,33 +548,39 @@ export default function TechnicianForm() {
                   <span className="text-[10px] font-black text-[#5d7390] uppercase tracking-wider block">Chemicals Added</span>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {noChemicals && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        🚫 No Chemicals Added
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                        <span className="h-2 w-2 rounded-full bg-slate-400 flex-shrink-0" />
+                        No Chemicals Added
                       </span>
                     )}
                     {chemChecklist.tablets.checked && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        💊 {chemChecklist.tablets.label}: {chemChecklist.tablets.amount} tablet{Number(chemChecklist.tablets.amount) !== 1 ? 's' : ''}
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-sky-50 border border-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700">
+                        <span className="h-2 w-2 rounded-full bg-sky-500 flex-shrink-0" />
+                        {chemChecklist.tablets.label}: {chemChecklist.tablets.amount} tablet{Number(chemChecklist.tablets.amount) !== 1 ? 's' : ''}
                       </span>
                     )}
                     {chemChecklist.hcl.checked && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        🧪 {chemChecklist.hcl.label}: {chemChecklist.hcl.amount} L
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                        {chemChecklist.hcl.label}: {chemChecklist.hcl.amount} L
                       </span>
                     )}
                     {chemChecklist.granules.checked && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        ❄️ {chemChecklist.granules.label}: {chemChecklist.granules.amount} kg
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-violet-50 border border-violet-100 px-2.5 py-1 text-xs font-bold text-violet-700">
+                        <span className="h-2 w-2 rounded-full bg-violet-500 flex-shrink-0" />
+                        {chemChecklist.granules.label}: {chemChecklist.granules.amount} kg
                       </span>
                     )}
                     {chemChecklist.soda_ash.checked && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        🧼 {chemChecklist.soda_ash.label}: {chemChecklist.soda_ash.amount} kg
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-teal-50 border border-teal-100 px-2.5 py-1 text-xs font-bold text-teal-700">
+                        <span className="h-2 w-2 rounded-full bg-teal-500 flex-shrink-0" />
+                        {chemChecklist.soda_ash.label}: {chemChecklist.soda_ash.amount} kg
                       </span>
                     )}
                     {chemChecklist.other.checked && chemChecklist.other.name.trim() && (
-                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        ➕ {chemChecklist.other.name.trim()}
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 border border-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700">
+                        <span className="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0" />
+                        {chemChecklist.other.name.trim()}
                       </span>
                     )}
                   </div>
@@ -713,8 +803,8 @@ export default function TechnicianForm() {
               {/* Chlorine Tablets */}
               <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 chemChecklist.tablets.checked 
-                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
-                  : 'border-[#e2eaf1] bg-white'
+                  ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                  : `${COOL_PALETTE_CHEMICALS.tablets.border} ${COOL_PALETTE_CHEMICALS.tablets.bg}`
               }`}>
                 <button
                   type="button"
@@ -725,7 +815,7 @@ export default function TechnicianForm() {
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
-                    chemChecklist.tablets.checked ? 'bg-blue border-blue text-white' : 'border-slate-300 bg-white'
+                    chemChecklist.tablets.checked ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white/70'
                   }`}>
                     {chemChecklist.tablets.checked && (
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -733,9 +823,11 @@ export default function TechnicianForm() {
                       </svg>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">💊</span>
-                    <span className="font-extrabold text-sm text-[#0f2942]">Chlorine (Tablets)</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-3 w-3 rounded-full flex-shrink-0 ${chemChecklist.tablets.checked ? 'bg-[#52b197]' : COOL_PALETTE_CHEMICALS.tablets.dot}`} />
+                    <span className={`font-extrabold text-sm ${chemChecklist.tablets.checked ? 'text-[#1d5244]' : COOL_PALETTE_CHEMICALS.tablets.text}`}>
+                      Chlorine (Tablets)
+                    </span>
                   </div>
                 </button>
                 
@@ -749,7 +841,7 @@ export default function TechnicianForm() {
                       ...prev,
                       tablets: { ...prev.tablets, amount: Math.max(0, Number(prev.tablets.amount || 0) - 1).toString() }
                     }))}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
                   >
                     -
                   </button>
@@ -762,7 +854,7 @@ export default function TechnicianForm() {
                       ...prev,
                       tablets: { ...prev.tablets, amount: e.target.value }
                     }))}
-                    className="w-12 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5"
+                    className="w-12 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5 bg-white/80"
                   />
                   <button
                     type="button"
@@ -770,7 +862,7 @@ export default function TechnicianForm() {
                       ...prev,
                       tablets: { ...prev.tablets, amount: (Number(prev.tablets.amount || 0) + 1).toString() }
                     }))}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
                   >
                     +
                   </button>
@@ -780,8 +872,8 @@ export default function TechnicianForm() {
               {/* HCL Liters */}
               <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 chemChecklist.hcl.checked 
-                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
-                  : 'border-[#e2eaf1] bg-white'
+                  ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                  : `${COOL_PALETTE_CHEMICALS.hcl.border} ${COOL_PALETTE_CHEMICALS.hcl.bg}`
               }`}>
                 <button
                   type="button"
@@ -792,7 +884,7 @@ export default function TechnicianForm() {
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
-                    chemChecklist.hcl.checked ? 'bg-blue border-blue text-white' : 'border-slate-300 bg-white'
+                    chemChecklist.hcl.checked ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white/70'
                   }`}>
                     {chemChecklist.hcl.checked && (
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -800,9 +892,11 @@ export default function TechnicianForm() {
                       </svg>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🧪</span>
-                    <span className="font-extrabold text-sm text-[#0f2942]">HCL (Liters)</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-3 w-3 rounded-full flex-shrink-0 ${chemChecklist.hcl.checked ? 'bg-[#52b197]' : COOL_PALETTE_CHEMICALS.hcl.dot}`} />
+                    <span className={`font-extrabold text-sm ${chemChecklist.hcl.checked ? 'text-[#1d5244]' : COOL_PALETTE_CHEMICALS.hcl.text}`}>
+                      HCL (Liters)
+                    </span>
                   </div>
                 </button>
                 
@@ -816,7 +910,7 @@ export default function TechnicianForm() {
                       ...prev,
                       hcl: { ...prev.hcl, amount: Math.max(0, Number(prev.hcl.amount || 0) - 1).toString() }
                     }))}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
                   >
                     -
                   </button>
@@ -829,7 +923,7 @@ export default function TechnicianForm() {
                       ...prev,
                       hcl: { ...prev.hcl, amount: e.target.value }
                     }))}
-                    className="w-12 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5"
+                    className="w-12 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5 bg-white/80"
                   />
                   <button
                     type="button"
@@ -837,7 +931,7 @@ export default function TechnicianForm() {
                       ...prev,
                       hcl: { ...prev.hcl, amount: (Number(prev.hcl.amount || 0) + 1).toString() }
                     }))}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 hover:bg-slate-200 text-slate-700 font-extrabold text-lg select-none"
                   >
                     +
                   </button>
@@ -847,8 +941,8 @@ export default function TechnicianForm() {
               {/* Chlorine Granules */}
               <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 chemChecklist.granules.checked 
-                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
-                  : 'border-[#e2eaf1] bg-white'
+                  ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                  : `${COOL_PALETTE_CHEMICALS.granules.border} ${COOL_PALETTE_CHEMICALS.granules.bg}`
               }`}>
                 <button
                   type="button"
@@ -859,7 +953,7 @@ export default function TechnicianForm() {
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
-                    chemChecklist.granules.checked ? 'bg-blue border-blue text-white' : 'border-slate-300 bg-white'
+                    chemChecklist.granules.checked ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white/70'
                   }`}>
                     {chemChecklist.granules.checked && (
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -867,9 +961,11 @@ export default function TechnicianForm() {
                       </svg>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">❄️</span>
-                    <span className="font-extrabold text-sm text-[#0f2942]">Chlorine (Granules/Powder)</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-3 w-3 rounded-full flex-shrink-0 ${chemChecklist.granules.checked ? 'bg-[#52b197]' : COOL_PALETTE_CHEMICALS.granules.dot}`} />
+                    <span className={`font-extrabold text-sm ${chemChecklist.granules.checked ? 'text-[#1d5244]' : COOL_PALETTE_CHEMICALS.granules.text}`}>
+                      Chlorine (Granules/Powder)
+                    </span>
                   </div>
                 </button>
                 
@@ -888,17 +984,17 @@ export default function TechnicianForm() {
                       ...prev,
                       granules: { ...prev.granules, amount: e.target.value }
                     }))}
-                    className="w-20 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5 outline-none"
+                    className="w-20 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5 outline-none bg-white/80"
                   />
-                  <span className="text-xs font-black text-[#5d7390]">KG</span>
+                  <span className={`text-xs font-black ${chemChecklist.granules.checked ? 'text-[#1d5244]' : 'text-[#5d7390]'}`}>KG</span>
                 </div>
               </div>
 
               {/* Soda Ash */}
               <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 chemChecklist.soda_ash.checked 
-                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
-                  : 'border-[#e2eaf1] bg-white'
+                  ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                  : `${COOL_PALETTE_CHEMICALS.soda_ash.border} ${COOL_PALETTE_CHEMICALS.soda_ash.bg}`
               }`}>
                 <button
                   type="button"
@@ -909,7 +1005,7 @@ export default function TechnicianForm() {
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
-                    chemChecklist.soda_ash.checked ? 'bg-blue border-blue text-white' : 'border-slate-300 bg-white'
+                    chemChecklist.soda_ash.checked ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white/70'
                   }`}>
                     {chemChecklist.soda_ash.checked && (
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -917,9 +1013,11 @@ export default function TechnicianForm() {
                       </svg>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🧼</span>
-                    <span className="font-extrabold text-sm text-[#0f2942]">Soda Ash</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-3 w-3 rounded-full flex-shrink-0 ${chemChecklist.soda_ash.checked ? 'bg-[#52b197]' : COOL_PALETTE_CHEMICALS.soda_ash.dot}`} />
+                    <span className={`font-extrabold text-sm ${chemChecklist.soda_ash.checked ? 'text-[#1d5244]' : COOL_PALETTE_CHEMICALS.soda_ash.text}`}>
+                      Soda Ash
+                    </span>
                   </div>
                 </button>
                 
@@ -938,17 +1036,17 @@ export default function TechnicianForm() {
                       ...prev,
                       soda_ash: { ...prev.soda_ash, amount: e.target.value }
                     }))}
-                    className="w-20 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5 outline-none"
+                    className="w-20 text-center font-extrabold text-sm text-[#0f2942] focus-ring border border-slate-200 rounded-xl py-1.5 outline-none bg-white/80"
                   />
-                  <span className="text-xs font-black text-[#5d7390]">KG</span>
+                  <span className={`text-xs font-black ${chemChecklist.soda_ash.checked ? 'text-[#1d5244]' : 'text-[#5d7390]'}`}>KG</span>
                 </div>
               </div>
 
               {/* Other Chemical */}
               <div className={`rounded-2xl border p-4 transition-all duration-200 ${
                 chemChecklist.other.checked 
-                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
-                  : 'border-[#e2eaf1] bg-white'
+                  ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                  : `${COOL_PALETTE_CHEMICALS.other.border} ${COOL_PALETTE_CHEMICALS.other.bg}`
               }`}>
                 <div className="flex items-center justify-between">
                   <button
@@ -969,7 +1067,7 @@ export default function TechnicianForm() {
                     className="flex items-center gap-3 text-left flex-1 min-w-0"
                   >
                     <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
-                      chemChecklist.other.checked ? 'bg-blue border-blue text-white' : 'border-slate-300 bg-white'
+                      chemChecklist.other.checked ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white/70'
                     }`}>
                       {chemChecklist.other.checked && (
                         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -977,9 +1075,11 @@ export default function TechnicianForm() {
                         </svg>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">➕</span>
-                      <span className="font-extrabold text-sm text-[#0f2942]">Other Chemical</span>
+                    <div className="flex items-center gap-2.5">
+                      <span className={`h-3 w-3 rounded-full flex-shrink-0 ${chemChecklist.other.checked ? 'bg-[#52b197]' : COOL_PALETTE_CHEMICALS.other.dot}`} />
+                      <span className={`font-extrabold text-sm ${chemChecklist.other.checked ? 'text-[#1d5244]' : COOL_PALETTE_CHEMICALS.other.text}`}>
+                        Other Chemical
+                      </span>
                     </div>
                   </button>
                 </div>
@@ -996,7 +1096,7 @@ export default function TechnicianForm() {
                         ...prev,
                         other: { ...prev.other, name: e.target.value, amount: '1', unit: 'other' as const }
                       }))}
-                      className="focus-ring min-h-12 w-full rounded-2xl border border-[#c5d5e3] px-4 text-sm font-bold text-ink outline-none bg-slate-50/10 placeholder:text-slate-300"
+                      className="focus-ring min-h-12 w-full rounded-2xl border border-[#c5d5e3] px-4 text-sm font-bold text-ink outline-none bg-white/80 placeholder:text-slate-300"
                     />
                   </div>
                 )}
@@ -1005,8 +1105,8 @@ export default function TechnicianForm() {
               {/* No Chemicals Added */}
               <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 noChemicals 
-                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
-                  : 'border-[#e2eaf1] bg-white'
+                  ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                  : `${COOL_PALETTE_CHEMICALS.no_chemicals.border} ${COOL_PALETTE_CHEMICALS.no_chemicals.bg}`
               }`}>
                 <button
                   type="button"
@@ -1027,7 +1127,7 @@ export default function TechnicianForm() {
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
-                    noChemicals ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white'
+                    noChemicals ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white/70'
                   }`}>
                     {noChemicals && (
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -1035,9 +1135,11 @@ export default function TechnicianForm() {
                       </svg>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🚫</span>
-                    <span className="font-extrabold text-sm text-[#0f2942]">NO CHEMICALS ADDED</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-3 w-3 rounded-full flex-shrink-0 ${noChemicals ? 'bg-[#52b197]' : COOL_PALETTE_CHEMICALS.no_chemicals.dot}`} />
+                    <span className={`font-extrabold text-sm ${noChemicals ? 'text-[#1d5244]' : COOL_PALETTE_CHEMICALS.no_chemicals.text}`}>
+                      NO CHEMICALS ADDED
+                    </span>
                   </div>
                 </button>
               </div>
@@ -1058,18 +1160,22 @@ export default function TechnicianForm() {
             <div className="space-y-2.5">
               {CHECKLIST_ITEMS.map(item => {
                 const isChecked = checkedItems[item.id];
+                const colors = COOL_PALETTE_CLEANING[item.id];
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => toggleChecklistItem(item.id)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-[#e2eaf1] bg-white p-4 shadow-sm hover:bg-slate-50/50 transition-all text-left group"
+                    className={`flex w-full items-center justify-between rounded-2xl border p-4 shadow-sm transition-all text-left ${
+                      isChecked 
+                        ? 'border-[#52b197] bg-[#ebf7f4] shadow-sm' 
+                        : `${colors.border} ${colors.bg} ${colors.hoverBg}`
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#ebf5fe] text-lg">
-                        {item.emoji}
-                      </div>
-                      <span className="font-extrabold text-sm text-[#0f2942] group-hover:text-blue transition-colors">
+                      {/* Cool decorative colored dot instead of icon */}
+                      <span className={`h-3.5 w-3.5 rounded-full flex-shrink-0 ${isChecked ? 'bg-[#52b197]' : colors.dot}`} />
+                      <span className={`font-extrabold text-sm ${isChecked ? 'text-[#1d5244]' : colors.text}`}>
                         {item.label}
                       </span>
                     </div>
@@ -1078,7 +1184,7 @@ export default function TechnicianForm() {
                     <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${
                       isChecked 
                         ? 'bg-[#52b197] border-[#52b197] text-white' 
-                        : 'border-slate-300 bg-white'
+                        : 'border-slate-300 bg-white/70'
                     }`}>
                       {isChecked && (
                         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
