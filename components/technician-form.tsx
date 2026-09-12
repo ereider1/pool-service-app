@@ -77,6 +77,55 @@ export default function TechnicianForm() {
   const [strip, setStrip] = useState<File | null>(null); 
   const [photos, setPhotos] = useState<File[]>([]); 
   const [notes, setNotes] = useState(''); 
+
+  const [stripDataUrl, setStripDataUrl] = useState<string | null>(null);
+  const [photoDataUrls, setPhotoDataUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!strip) {
+      setStripDataUrl(null);
+      return;
+    }
+    let active = true;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (active && typeof reader.result === 'string') {
+        setStripDataUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(strip);
+    return () => {
+      active = false;
+    };
+  }, [strip]);
+
+  useEffect(() => {
+    if (photos.length === 0) {
+      setPhotoDataUrls([]);
+      return;
+    }
+    let active = true;
+    const loadUrls = async () => {
+      const urls = await Promise.all(
+        photos.map(file => {
+          return new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              resolve(typeof reader.result === 'string' ? reader.result : '');
+            };
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+      if (active) {
+        setPhotoDataUrls(urls);
+      }
+    };
+    loadUrls();
+    return () => {
+      active = false;
+    };
+  }, [photos]); 
   const [errors, setErrors] = useState<Record<string, string>>({}); 
   const [saving, setSaving] = useState(false); 
   const [saved, setSaved] = useState(false);
@@ -139,8 +188,7 @@ export default function TechnicianForm() {
 
     setSharing(true);
     try {
-      // Generate high-resolution PNG of the card
-      const dataUrl = await htmlToImage.toPng(cardElement, {
+      const options = {
         backgroundColor: '#ffffff',
         style: {
           borderRadius: '0',
@@ -148,7 +196,12 @@ export default function TechnicianForm() {
         },
         pixelRatio: 2, // Retina resolution!
         cacheBust: true,
-      });
+      };
+
+      // Generate high-resolution PNG of the card.
+      // Safari/iOS workaround: call toPng twice to warm up cache and prevent blank images or rendering failures.
+      await htmlToImage.toPng(cardElement, options);
+      const dataUrl = await htmlToImage.toPng(cardElement, options);
 
       const response = await fetch(dataUrl);
       const blob = await response.blob();
@@ -454,16 +507,16 @@ export default function TechnicianForm() {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {strip && (
                     <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
-                      <img src={URL.createObjectURL(strip)} alt="Test strip" className="h-full w-full object-cover" />
+                      <img src={stripDataUrl || URL.createObjectURL(strip)} alt="Test strip" className="h-full w-full object-cover" />
                       <span className="absolute bottom-0 inset-x-0 bg-navy/70 text-[7px] text-center font-black text-white py-0.5 uppercase tracking-wide">strip</span>
                     </div>
                   )}
                   {photos.map((file, i) => (
                     <div key={i} className="relative h-14 w-14 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
                       {file.type.startsWith('video/') ? (
-                        <video src={URL.createObjectURL(file)} className="h-full w-full object-cover" muted />
+                        <video src={photoDataUrls[i] || URL.createObjectURL(file)} className="h-full w-full object-cover" muted />
                       ) : (
-                        <img src={URL.createObjectURL(file)} alt="Pool photo" className="h-full w-full object-cover" />
+                        <img src={photoDataUrls[i] || URL.createObjectURL(file)} alt="Pool photo" className="h-full w-full object-cover" />
                       )}
                     </div>
                   ))}
