@@ -80,6 +80,7 @@ export default function TechnicianForm() {
 
   const [stripDataUrl, setStripDataUrl] = useState<string | null>(null);
   const [photoDataUrls, setPhotoDataUrls] = useState<string[]>([]);
+  const [noChemicals, setNoChemicals] = useState(false);
 
   useEffect(() => {
     if (!strip) {
@@ -252,6 +253,12 @@ export default function TechnicianForm() {
       next.strip = 'A test-strip photo is required.'; 
     }
     
+    // Chemicals Checklist Validation: Must select at least one chemical, or check "NO CHEMICALS ADDED"
+    const anyChemChecked = Object.values(chemChecklist).some(item => item.checked);
+    if (!anyChemChecked && !noChemicals) {
+      next.chemicals_checklist = 'You must enter at least one chemical or check "NO CHEMICALS ADDED".';
+    }
+
     // Chemicals validation (Only validate checked items)
     if (chemChecklist.tablets.checked) {
       const val = Number(chemChecklist.tablets.amount);
@@ -278,11 +285,8 @@ export default function TechnicianForm() {
       }
     }
     if (chemChecklist.other.checked) {
-      const val = Number(chemChecklist.other.amount);
       if (!chemChecklist.other.name.trim()) {
-        next.other = 'Enter a name for the custom chemical.';
-      } else if (!chemChecklist.other.amount || !Number.isFinite(val) || val <= 0) {
-        next.other = 'Enter a valid amount for the custom chemical.';
+        next.other = 'Enter details for the custom chemical.';
       }
     }
 
@@ -455,10 +459,15 @@ export default function TechnicianForm() {
               </div>
 
               {/* Chemicals Section */}
-              {Object.values(chemChecklist).some(c => c.checked) && (
+              {(Object.values(chemChecklist).some(c => c.checked) || noChemicals) && (
                 <div className="mt-4 border-b border-[#f2f6fa] pb-4">
                   <span className="text-[10px] font-black text-[#5d7390] uppercase tracking-wider block">Chemicals Added</span>
                   <div className="mt-2 flex flex-wrap gap-1.5">
+                    {noChemicals && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
+                        🚫 No Chemicals Added
+                      </span>
+                    )}
                     {chemChecklist.tablets.checked && (
                       <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
                         💊 {chemChecklist.tablets.label}: {chemChecklist.tablets.amount} tablet{Number(chemChecklist.tablets.amount) !== 1 ? 's' : ''}
@@ -481,7 +490,7 @@ export default function TechnicianForm() {
                     )}
                     {chemChecklist.other.checked && chemChecklist.other.name.trim() && (
                       <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
-                        ➕ {chemChecklist.other.name.trim()}: {chemChecklist.other.amount} {chemChecklist.other.unit}
+                        ➕ {chemChecklist.other.name.trim()}
                       </span>
                     )}
                   </div>
@@ -697,7 +706,7 @@ export default function TechnicianForm() {
           </Section>
 
           {/* Section 3: Chemicals Added (REVISED TO CHECKLIST FROM SKETCH) */}
-          <Section number="3" title="Chemicals Added" detail="optional">
+          <Section number="3" title="Chemicals Added" detail="Required checklist">
             <p className="text-xs text-[#5d7390] font-semibold mb-4">Check any chemicals you added during this visit and enter the amount.</p>
             <div className="space-y-3">
               
@@ -709,7 +718,10 @@ export default function TechnicianForm() {
               }`}>
                 <button
                   type="button"
-                  onClick={() => setChemChecklist(prev => ({ ...prev, tablets: { ...prev.tablets, checked: !prev.tablets.checked } }))}
+                  onClick={() => {
+                    setNoChemicals(false);
+                    setChemChecklist(prev => ({ ...prev, tablets: { ...prev.tablets, checked: !prev.tablets.checked } }));
+                  }}
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
@@ -773,7 +785,10 @@ export default function TechnicianForm() {
               }`}>
                 <button
                   type="button"
-                  onClick={() => setChemChecklist(prev => ({ ...prev, hcl: { ...prev.hcl, checked: !prev.hcl.checked } }))}
+                  onClick={() => {
+                    setNoChemicals(false);
+                    setChemChecklist(prev => ({ ...prev, hcl: { ...prev.hcl, checked: !prev.hcl.checked } }));
+                  }}
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
@@ -837,7 +852,10 @@ export default function TechnicianForm() {
               }`}>
                 <button
                   type="button"
-                  onClick={() => setChemChecklist(prev => ({ ...prev, granules: { ...prev.granules, checked: !prev.granules.checked } }))}
+                  onClick={() => {
+                    setNoChemicals(false);
+                    setChemChecklist(prev => ({ ...prev, granules: { ...prev.granules, checked: !prev.granules.checked } }));
+                  }}
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
@@ -884,7 +902,10 @@ export default function TechnicianForm() {
               }`}>
                 <button
                   type="button"
-                  onClick={() => setChemChecklist(prev => ({ ...prev, soda_ash: { ...prev.soda_ash, checked: !prev.soda_ash.checked } }))}
+                  onClick={() => {
+                    setNoChemicals(false);
+                    setChemChecklist(prev => ({ ...prev, soda_ash: { ...prev.soda_ash, checked: !prev.soda_ash.checked } }));
+                  }}
                   className="flex items-center gap-3 text-left flex-1 min-w-0"
                 >
                   <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
@@ -932,7 +953,19 @@ export default function TechnicianForm() {
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => setChemChecklist(prev => ({ ...prev, other: { ...prev.other, checked: !prev.other.checked } }))}
+                    onClick={() => {
+                      setNoChemicals(false);
+                      setChemChecklist(prev => ({
+                        ...prev,
+                        other: {
+                          ...prev.other,
+                          checked: !prev.other.checked,
+                          name: !prev.other.checked ? prev.other.name : '',
+                          amount: '1',
+                          unit: 'other' as const
+                        }
+                      }));
+                    }}
                     className="flex items-center gap-3 text-left flex-1 min-w-0"
                   >
                     <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
@@ -951,58 +984,70 @@ export default function TechnicianForm() {
                   </button>
                 </div>
                 
-                {/* Other Input Fields */}
+                {/* Other Input Field */}
                 {chemChecklist.other.checked && (
-                  <div className="mt-4 grid grid-cols-[1fr_80px_80px] gap-2 items-center animate-fade-in">
+                  <div className="mt-3 animate-fade-in">
                     <input
                       type="text"
-                      placeholder="Chemical Name"
-                      aria-label="Other chemical name"
+                      placeholder="e.g. 5 caps of Algaecide, clarifier, etc."
+                      aria-label="Other chemical details"
                       value={chemChecklist.other.name}
                       onChange={e => setChemChecklist(prev => ({
                         ...prev,
-                        other: { ...prev.other, name: e.target.value }
+                        other: { ...prev.other, name: e.target.value, amount: '1', unit: 'other' as const }
                       }))}
-                      className="focus-ring min-h-11 rounded-xl border border-[#c5d5e3] px-3 text-xs font-bold text-ink outline-none"
+                      className="focus-ring min-h-12 w-full rounded-2xl border border-[#c5d5e3] px-4 text-sm font-bold text-ink outline-none bg-slate-50/10 placeholder:text-slate-300"
                     />
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      placeholder="0.0"
-                      aria-label="Other chemical amount"
-                      value={chemChecklist.other.amount}
-                      onChange={e => setChemChecklist(prev => ({
-                        ...prev,
-                        other: { ...prev.other, amount: e.target.value }
-                      }))}
-                      className="focus-ring min-h-11 rounded-xl border border-[#c5d5e3] px-2 text-xs font-extrabold text-ink outline-none text-center"
-                    />
-                    <select
-                      aria-label="Other chemical unit"
-                      value={chemChecklist.other.unit}
-                      onChange={e => setChemChecklist(prev => ({
-                        ...prev,
-                        other: { ...prev.other, unit: e.target.value as any }
-                      }))}
-                      className="focus-ring min-h-11 rounded-xl border border-[#c5d5e3] bg-white px-1 text-xs font-bold text-ink outline-none"
-                    >
-                      <option value="kg">kg</option>
-                      <option value="oz">oz</option>
-                      <option value="gal">gal</option>
-                      <option value="lbs">lbs</option>
-                      <option value="other">other</option>
-                    </select>
                   </div>
                 )}
+              </div>
+
+              {/* No Chemicals Added */}
+              <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
+                noChemicals 
+                  ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
+                  : 'border-[#e2eaf1] bg-white'
+              }`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextVal = !noChemicals;
+                    setNoChemicals(nextVal);
+                    if (nextVal) {
+                      // Uncheck all other options
+                      setChemChecklist(prev => ({
+                        tablets: { ...prev.tablets, checked: false, amount: '1' },
+                        hcl: { ...prev.hcl, checked: false, amount: '1' },
+                        granules: { ...prev.granules, checked: false, amount: '' },
+                        soda_ash: { ...prev.soda_ash, checked: false, amount: '' },
+                        other: { ...prev.other, checked: false, name: '', amount: '' },
+                      }));
+                    }
+                  }}
+                  className="flex items-center gap-3 text-left flex-1 min-w-0"
+                >
+                  <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
+                    noChemicals ? 'bg-[#52b197] border-[#52b197] text-white' : 'border-slate-300 bg-white'
+                  }`}>
+                    {noChemicals && (
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🚫</span>
+                    <span className="font-extrabold text-sm text-[#0f2942]">NO CHEMICALS ADDED</span>
+                  </div>
+                </button>
               </div>
 
             </div>
             
             {/* Validation Errors for Chemicals */}
-            {(errors.tablets || errors.hcl || errors.granules || errors.soda_ash || errors.other) && (
+            {(errors.tablets || errors.hcl || errors.granules || errors.soda_ash || errors.other || errors.chemicals_checklist) && (
               <p className="mt-3 text-xs font-bold text-red-600">
-                {errors.tablets || errors.hcl || errors.granules || errors.soda_ash || errors.other}
+                {errors.tablets || errors.hcl || errors.granules || errors.soda_ash || errors.other || errors.chemicals_checklist}
               </p>
             )}
           </Section>
