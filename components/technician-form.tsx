@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/image';
+import * as htmlToImage from 'html-to-image';
 
 type ChemicalUnit = 'kg' | 'oz' | 'gal' | 'lbs' | 'other';
 
@@ -80,6 +81,7 @@ export default function TechnicianForm() {
   const [saving, setSaving] = useState(false); 
   const [saved, setSaved] = useState(false);
   const [savedVisitId, setSavedVisitId] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   // Pool Cleaning Checklist State
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({
@@ -113,6 +115,7 @@ export default function TechnicianForm() {
     setErrors({});
     setSaved(false);
     setSavedVisitId(null);
+    setSharing(false);
     setCheckedItems({
       check_levels: false,
       skim: false,
@@ -130,32 +133,55 @@ export default function TechnicianForm() {
     });
   };
 
-  const handleShare = async () => {
-    if (!savedVisitId) return;
-    const dateStr = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date());
-    const shareUrl = `${window.location.origin}/admin/visits/${savedVisitId}`;
-    const text = `≈ Pool Service\n\nService report for ${poolName} on ${dateStr}.\npH: ${ph}\nChlorine: ${chlorine} ppm\n\nView details and photos here: ${shareUrl}`;
+  const handleSharePng = async () => {
+    const cardElement = document.getElementById('export-report-card');
+    if (!cardElement) return;
 
-    if (navigator.share) {
-      try {
+    setSharing(true);
+    try {
+      // Generate high-resolution PNG of the card
+      const dataUrl = await htmlToImage.toPng(cardElement, {
+        backgroundColor: '#ffffff',
+        style: {
+          borderRadius: '0',
+          padding: '24px',
+        },
+        pixelRatio: 2, // Retina resolution!
+        cacheBust: true,
+      });
+
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `pool-report-${savedVisitId?.slice(0, 8) || 'visit'}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
+          files: [file],
           title: `Pool Report - ${poolName}`,
-          text: text,
-          url: shareUrl,
+          text: `Service report for ${poolName} on ${today}`,
         });
-      } catch (err) {
-        console.error('Error sharing:', err);
+      } else {
+        // Fallback: Copy to clipboard as image if possible, or just download the file
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              [blob.type]: blob,
+            })
+          ]);
+          alert('Success! PNG report image copied to clipboard. You can paste it directly into WhatsApp.');
+        } catch (clipErr) {
+          // Fallback download if clipboard sharing fails
+          const link = document.createElement('a');
+          link.download = `pool-report-villa-sayang-${savedVisitId?.slice(0, 8) || 'visit'}.png`;
+          link.href = dataUrl;
+          link.click();
+        }
       }
-    } else {
-      // Fallback: Copy link and open WhatsApp
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        alert('Report link copied to clipboard!');
-      } catch (err) {
-        console.error('Failed to copy link:', err);
-      }
-      const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-      window.open(waUrl, '_blank');
+    } catch (err) {
+      console.error('Error sharing PNG report:', err);
+      alert('Failed to generate image for sharing. You can still use the download/start options.');
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -335,12 +361,134 @@ export default function TechnicianForm() {
           <div className="mb-6 flex h-18 w-16 items-center justify-center rounded-full bg-[#e3f7eb] text-4xl text-[#1b9453]">✓</div>
           <h1 className="text-3xl font-black text-ink">Visit Saved!</h1>
           <p className="mt-2 text-[#5d7390] font-semibold">Everything has been recorded successfully.</p>
+          
+          {/* High-Fidelity Report Card for PNG Export */}
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[#e2eaf1] bg-white text-left shadow-soft mt-6">
+            <div id="export-report-card" className="p-6 bg-white">
+              <div className="flex items-center justify-between border-b border-[#f2f6fa] pb-4">
+                <div>
+                  <div className="flex items-center gap-1.5 text-blue">
+                    <span className="text-lg font-bold">≈</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-[#0d4261]">Pool Service</span>
+                  </div>
+                  <h2 className="mt-1 text-lg font-black text-ink">{poolName}</h2>
+                  <p className="text-[10px] font-bold text-[#5d7390] mt-0.5">{today}</p>
+                </div>
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider ${
+                  (Number(ph) < 7.2 || Number(ph) > 7.8 || Number(chlorine) < 1 || Number(chlorine) > 3) 
+                    ? 'bg-yellow-50 text-yellow-700 border border-yellow-100' 
+                    : 'bg-[#e3f7eb] text-[#1b9453] border border-[#cbeedd]'
+                }`}>
+                  {(Number(ph) < 7.2 || Number(ph) > 7.8 || Number(chlorine) < 1 || Number(chlorine) > 3) ? 'CHECK' : 'NORMAL'}
+                </span>
+              </div>
+
+              {/* Side-by-side pH and Chlorine Stats */}
+              <div className="mt-4 grid grid-cols-2 gap-3 border-b border-[#f2f6fa] pb-4">
+                <div className="rounded-2xl bg-[#ebf5fe] p-3 text-center border border-[#d0e3fc]">
+                  <span className="block text-[10px] font-extrabold text-[#4c7397] uppercase tracking-wider">pH Level</span>
+                  <span className="text-2xl font-black text-blue">{ph}</span>
+                  <span className="block text-[9px] font-bold text-[#5d7390] mt-0.5">
+                    {(Number(ph) < 7.2 || Number(ph) > 7.8) ? '⚠️ Out of Range' : '✨ Ideal Range'}
+                  </span>
+                </div>
+                <div className="rounded-2xl bg-[#e3f7eb] p-3 text-center border border-[#cbeedd]">
+                  <span className="block text-[10px] font-extrabold text-[#207a44] uppercase tracking-wider">Chlorine</span>
+                  <span className="text-2xl font-black text-[#1b9453]">{chlorine} <span className="text-xs font-bold">ppm</span></span>
+                  <span className="block text-[9px] font-bold text-[#207a44]/85 mt-0.5">
+                    {(Number(chlorine) < 1.0 || Number(chlorine) > 3.0) ? '⚠️ Out of Range' : '✨ Ideal Range'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Chemicals Section */}
+              {Object.values(chemChecklist).some(c => c.checked) && (
+                <div className="mt-4 border-b border-[#f2f6fa] pb-4">
+                  <span className="text-[10px] font-black text-[#5d7390] uppercase tracking-wider block">Chemicals Added</span>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {chemChecklist.tablets.checked && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
+                        💊 {chemChecklist.tablets.label}: {chemChecklist.tablets.amount} tablet{Number(chemChecklist.tablets.amount) !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                    {chemChecklist.hcl.checked && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
+                        🧪 {chemChecklist.hcl.label}: {chemChecklist.hcl.amount} L
+                      </span>
+                    )}
+                    {chemChecklist.granules.checked && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
+                        ❄️ {chemChecklist.granules.label}: {chemChecklist.granules.amount} kg
+                      </span>
+                    )}
+                    {chemChecklist.soda_ash.checked && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
+                        🧼 {chemChecklist.soda_ash.label}: {chemChecklist.soda_ash.amount} kg
+                      </span>
+                    )}
+                    {chemChecklist.other.checked && chemChecklist.other.name.trim() && (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-bold text-ink">
+                        ➕ {chemChecklist.other.name.trim()}: {chemChecklist.other.amount} {chemChecklist.other.unit}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Cleaning Checklist Section */}
+              <div className="mt-4 border-b border-[#f2f6fa] pb-4">
+                <span className="text-[10px] font-black text-[#5d7390] uppercase tracking-wider block">Cleaning Checklist</span>
+                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                  {CHECKLIST_ITEMS.map(item => (
+                    <div key={item.id} className="flex items-center gap-1.5 text-xs font-bold text-ink py-0.5">
+                      <span className="text-emerald-500 text-[11px]">✓</span>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Media Section */}
+              <div className="mt-4 border-b border-[#f2f6fa] pb-4">
+                <span className="text-[10px] font-black text-[#5d7390] uppercase tracking-wider block">Media Logged</span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {strip && (
+                    <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                      <img src={URL.createObjectURL(strip)} alt="Test strip" className="h-full w-full object-cover" />
+                      <span className="absolute bottom-0 inset-x-0 bg-navy/70 text-[7px] text-center font-black text-white py-0.5 uppercase tracking-wide">strip</span>
+                    </div>
+                  )}
+                  {photos.map((file, i) => (
+                    <div key={i} className="relative h-14 w-14 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                      {file.type.startsWith('video/') ? (
+                        <video src={URL.createObjectURL(file)} className="h-full w-full object-cover" muted />
+                      ) : (
+                        <img src={URL.createObjectURL(file)} alt="Pool photo" className="h-full w-full object-cover" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              {notes.trim() && (
+                <div className="mt-4">
+                  <span className="text-[10px] font-black text-[#5d7390] uppercase tracking-wider block">Technician Notes</span>
+                  <p className="mt-1 text-xs font-bold text-ink bg-slate-50 border border-slate-100/50 p-2.5 rounded-xl italic leading-relaxed">
+                    "{notes.trim()}"
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
             <button 
-              onClick={handleShare} 
-              className="focus-ring flex min-h-14 items-center justify-center rounded-2xl bg-blue px-6 font-extrabold tracking-wide text-white shadow-soft hover:bg-blue/90 hover:scale-[1.01] active:scale-[0.99] transition-all text-base gap-2"
+              onClick={handleSharePng} 
+              disabled={sharing}
+              className="focus-ring flex min-h-14 items-center justify-center rounded-2xl bg-[#52b197] hover:bg-[#43a187] px-6 font-extrabold tracking-wide text-white shadow-soft hover:scale-[1.01] active:scale-[0.99] transition-all text-base gap-2 disabled:cursor-wait disabled:opacity-60"
             >
-              <span>🔗</span> SHARE THIS VISIT
+              <span>🖼️</span> {sharing ? 'GENERATING IMAGE…' : 'SHARE THIS VISIT'}
             </button>
             <button 
               onClick={reset} 
