@@ -22,7 +22,6 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
   { id: 'brush', label: 'Brush', emoji: '🧹' },
   { id: 'empty_basket', label: 'Empty Basket', emoji: '🧺' },
   { id: 'backwash_filter', label: 'Backwash Filter', emoji: '🔄' },
-  { id: 'added_chemicals', label: 'Added Chemicals', emoji: '⚡' },
 ];
 
 function Section({ number, title, detail, children }: { number: string; title: string; detail?: string; children: React.ReactNode }) { 
@@ -89,13 +88,12 @@ export default function TechnicianForm() {
     brush: false,
     empty_basket: false,
     backwash_filter: false,
-    added_chemicals: false,
   });
 
   // Chemicals Added Checkbox List State (from hand-drawn sketch)
   const [chemChecklist, setChemChecklist] = useState({
     tablets: { checked: false, amount: '1', label: 'Chlorine (Tablets)', unit: 'other' as const },
-    hcl: { checked: false, amount: '1', label: 'HCl (Liters)', unit: 'other' as const },
+    hcl: { checked: false, amount: '1', label: 'HCL (Liters)', unit: 'other' as const },
     granules: { checked: false, amount: '', label: 'Chlorine (Granules)', unit: 'kg' as const },
     soda_ash: { checked: false, amount: '', label: 'Soda Ash', unit: 'kg' as const },
     other: { checked: false, amount: '', name: '', label: 'Other', unit: 'other' as const },
@@ -120,11 +118,10 @@ export default function TechnicianForm() {
       brush: false,
       empty_basket: false,
       backwash_filter: false,
-      added_chemicals: false,
     });
     setChemChecklist({
       tablets: { checked: false, amount: '1', label: 'Chlorine (Tablets)', unit: 'other' as const },
-      hcl: { checked: false, amount: '1', label: 'HCl (Liters)', unit: 'other' as const },
+      hcl: { checked: false, amount: '1', label: 'HCL (Liters)', unit: 'other' as const },
       granules: { checked: false, amount: '', label: 'Chlorine (Granules)', unit: 'kg' as const },
       soda_ash: { checked: false, amount: '', label: 'Soda Ash', unit: 'kg' as const },
       other: { checked: false, amount: '', name: '', label: 'Other', unit: 'other' as const },
@@ -155,7 +152,7 @@ export default function TechnicianForm() {
     if (chemChecklist.hcl.checked) {
       const val = Number(chemChecklist.hcl.amount);
       if (!chemChecklist.hcl.amount || !Number.isFinite(val) || val <= 0) {
-        next.hcl = 'Enter a valid volume of HCl in Liters.';
+        next.hcl = 'Enter a valid volume of HCL in Liters.';
       }
     }
     if (chemChecklist.granules.checked) {
@@ -254,7 +251,7 @@ export default function TechnicianForm() {
       if (chemChecklist.hcl.checked && chemChecklist.hcl.amount) {
         validChemicals.push({
           visit_id: visitId,
-          chemical: 'HCl (Liters)',
+          chemical: 'HCL (Liters)',
           amount: Number(chemChecklist.hcl.amount),
           unit: 'other'
         });
@@ -529,7 +526,7 @@ export default function TechnicianForm() {
                 </div>
               </div>
 
-              {/* HCl Liters */}
+              {/* HCL Liters */}
               <div className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 chemChecklist.hcl.checked 
                   ? 'border-blue/30 bg-[#ebf5fe]/20 shadow-sm' 
@@ -551,7 +548,7 @@ export default function TechnicianForm() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🧪</span>
-                    <span className="font-extrabold text-sm text-[#0f2942]">HCl (Liters)</span>
+                    <span className="font-extrabold text-sm text-[#0f2942]">HCL (Liters)</span>
                   </div>
                 </button>
                 
@@ -572,7 +569,7 @@ export default function TechnicianForm() {
                   <input
                     type="number"
                     min="0"
-                    aria-label="HCl Liters amount"
+                    aria-label="HCL Liters amount"
                     value={chemChecklist.hcl.amount}
                     onChange={e => setChemChecklist(prev => ({
                       ...prev,
