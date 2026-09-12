@@ -596,8 +596,8 @@ export default function TechnicianForm() {
                   step="0.1" 
                   value={ph} 
                   onChange={e => setPh(e.target.value)} 
-                  className="focus-ring mt-2 w-full border-0 p-0 text-3xl font-extrabold text-ink bg-transparent outline-none" 
-                  placeholder="7.4" 
+                  className="focus-ring mt-2 w-full border-0 p-0 text-3xl font-extrabold text-ink bg-transparent outline-none placeholder:text-slate-300" 
+                  placeholder="0.0" 
                 />
                 <span className="mt-2 block text-[11px] font-bold text-[#5d7390]">Ideal 7.2 – 7.8</span>
               </label>
@@ -612,8 +612,8 @@ export default function TechnicianForm() {
                   step="0.1" 
                   value={chlorine} 
                   onChange={e => setChlorine(e.target.value)} 
-                  className="focus-ring mt-2 w-full border-0 p-0 text-3xl font-extrabold text-ink bg-transparent outline-none" 
-                  placeholder="2.0" 
+                  className="focus-ring mt-2 w-full border-0 p-0 text-3xl font-extrabold text-ink bg-transparent outline-none placeholder:text-slate-300" 
+                  placeholder="0.0" 
                 />
                 <span className="mt-2 block text-[11px] font-bold text-[#5d7390]">Ideal 1.0 – 3.0</span>
               </label>
