@@ -79,6 +79,7 @@ export default function TechnicianForm() {
   const [errors, setErrors] = useState<Record<string, string>>({}); 
   const [saving, setSaving] = useState(false); 
   const [saved, setSaved] = useState(false);
+  const [savedVisitId, setSavedVisitId] = useState<string | null>(null);
 
   // Pool Cleaning Checklist State
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({
@@ -111,6 +112,7 @@ export default function TechnicianForm() {
     setNotes('');
     setErrors({});
     setSaved(false);
+    setSavedVisitId(null);
     setCheckedItems({
       check_levels: false,
       skim: false,
@@ -126,6 +128,35 @@ export default function TechnicianForm() {
       soda_ash: { checked: false, amount: '', label: 'Soda Ash', unit: 'kg' as const },
       other: { checked: false, amount: '', name: '', label: 'Other', unit: 'other' as const },
     });
+  };
+
+  const handleShare = async () => {
+    if (!savedVisitId) return;
+    const dateStr = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date());
+    const shareUrl = `${window.location.origin}/admin/visits/${savedVisitId}`;
+    const text = `≈ Pool Service\n\nService report for ${poolName} on ${dateStr}.\npH: ${ph}\nChlorine: ${chlorine} ppm\n\nView details and photos here: ${shareUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Pool Report - ${poolName}`,
+          text: text,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      // Fallback: Copy link and open WhatsApp
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Report link copied to clipboard!');
+      } catch (err) {
+        console.error('Failed to copy link:', err);
+      }
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, '_blank');
+    }
   };
 
   const validate = () => { 
@@ -176,7 +207,7 @@ export default function TechnicianForm() {
       }
     }
 
-    // Checklist validation: Ensure all 7 checklist items are checked
+    // Checklist validation: Ensure all 6 checklist items are checked
     const allChecked = Object.values(checkedItems).every(val => val === true);
     if (!allChecked) {
       next.checklist = 'You must complete and check off all cleaning tasks before saving the visit.';
@@ -286,6 +317,7 @@ export default function TechnicianForm() {
         if (error) throw error; 
       }
       
+      setSavedVisitId(visitId);
       setSaved(true);
     } catch (error) { 
       console.error(error); 
@@ -305,8 +337,14 @@ export default function TechnicianForm() {
           <p className="mt-2 text-[#5d7390] font-semibold">Everything has been recorded successfully.</p>
           <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
             <button 
+              onClick={handleShare} 
+              className="focus-ring flex min-h-14 items-center justify-center rounded-2xl bg-blue px-6 font-extrabold tracking-wide text-white shadow-soft hover:bg-blue/90 hover:scale-[1.01] active:scale-[0.99] transition-all text-base gap-2"
+            >
+              <span>🔗</span> SHARE THIS VISIT
+            </button>
+            <button 
               onClick={reset} 
-              className="focus-ring flex min-h-14 items-center justify-center rounded-2xl bg-blue px-6 font-extrabold tracking-wide text-white shadow-soft hover:bg-blue/90 hover:scale-[1.01] active:scale-[0.99] transition-all text-base"
+              className="focus-ring flex min-h-14 items-center justify-center rounded-2xl border border-[#c5d5e3] px-6 font-extrabold tracking-wide text-[#5d7390] hover:bg-[#f7fafc] transition-all text-base"
             >
               START ANOTHER VISIT
             </button>
