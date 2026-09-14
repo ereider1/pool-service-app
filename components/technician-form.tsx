@@ -152,10 +152,6 @@ export default function TechnicianForm() {
   
   const poolName = "Villa Sayang - Yeh Gangga";
 
-  useEffect(() => { 
-    stripRef.current?.removeAttribute('capture'); 
-  }, []);
-
   const [ph, setPh] = useState(''); 
   const [chlorine, setChlorine] = useState(''); 
   const [strip, setStrip] = useState<File | null>(null); 
@@ -325,24 +321,20 @@ export default function TechnicianForm() {
 
   const validate = () => { 
     const next: Record<string, string> = {}; 
-    const p = Number(ph), c = Number(chlorine); 
     
-    if (!ph || !Number.isFinite(p) || p < 0 || p > 14) {
-      next.ph = 'Enter a pH between 0 and 14.'; 
+    if (ph.trim() !== '') {
+      const p = Number(ph);
+      if (!Number.isFinite(p) || p < 0 || p > 14) {
+        next.ph = 'Enter a pH between 0 and 14.'; 
+      }
     }
-    if (!chlorine || !Number.isFinite(c) || c < 0) {
-      next.chlorine = 'Enter a chlorine value of 0 or more.'; 
-    }
-    if (!strip) {
-      next.strip = 'A test-strip photo is required.'; 
+    if (chlorine.trim() !== '') {
+      const c = Number(chlorine);
+      if (!Number.isFinite(c) || c < 0) {
+        next.chlorine = 'Enter a chlorine value of 0 or more.'; 
+      }
     }
     
-    // Chemicals Checklist Validation: Must select at least one chemical, or check "NO CHEMICALS ADDED"
-    const anyChemChecked = Object.values(chemChecklist).some(item => item.checked);
-    if (!anyChemChecked && !noChemicals) {
-      next.chemicals_checklist = 'You must enter at least one chemical or check "NO CHEMICALS ADDED".';
-    }
-
     // Chemicals validation (Only validate checked items)
     if (chemChecklist.tablets.checked) {
       const val = Number(chemChecklist.tablets.amount);
@@ -374,12 +366,6 @@ export default function TechnicianForm() {
       }
     }
 
-    // Checklist validation: Ensure all 6 checklist items are checked
-    const allChecked = Object.values(checkedItems).every(val => val === true);
-    if (!allChecked) {
-      next.checklist = 'You must complete and check off all cleaning tasks before saving the visit.';
-    }
-
     setErrors(next); 
     return Object.keys(next).length === 0; 
   };
@@ -395,25 +381,30 @@ export default function TechnicianForm() {
   };
 
   const save = async () => { 
-    if (!validate() || !strip) return; 
+    if (!validate()) return; 
     setSaving(true); 
     setErrors({}); 
     let step = 'visit record'; 
     try {
-      const status = Number(ph) < 7.2 || Number(ph) > 7.8 || Number(chlorine) < 1 || Number(chlorine) > 3 ? 'check' : 'normal';
+      const phToSave = ph.trim() === '' ? 7.5 : Number(ph);
+      const chlorineToSave = chlorine.trim() === '' ? 2.0 : Number(chlorine);
+      const status = phToSave < 7.2 || phToSave > 7.8 || chlorineToSave < 1 || chlorineToSave > 3 ? 'check' : 'normal';
       const visitId = crypto.randomUUID(); 
       
       const { error: visitError } = await supabase.from('visits').insert({ 
         id: visitId, 
-        ph: Number(ph), 
-        chlorine: Number(chlorine), 
+        ph: phToSave, 
+        chlorine: chlorineToSave, 
         notes: notes.trim() || null, 
         status 
       }); 
       
       if (visitError) throw visitError;
       
-      const all = [{ file: strip, type: 'test_strip' as const }, ...photos.map(file => ({ file, type: 'other' as const }))]; 
+      const all = [
+        ...(strip ? [{ file: strip, type: 'test_strip' as const }] : []),
+        ...photos.map(file => ({ file, type: 'other' as const }))
+      ]; 
       const metadata: { visit_id: string; photo_type: string; storage_path: string }[] = [];
       
       step = 'photo upload';
@@ -724,14 +715,13 @@ export default function TechnicianForm() {
             
             <div className="mt-6 flex items-center justify-between">
               <h3 className="text-sm font-extrabold text-[#0f2942]">Test Results Photo</h3>
-              <span className="text-[10px] font-extrabold text-[#5d7390] bg-[#edf2f6] px-2 py-0.5 rounded-full uppercase">required</span>
+              <span className="text-[10px] font-extrabold text-[#5d7390] bg-[#edf2f6] px-2 py-0.5 rounded-full uppercase">optional</span>
             </div>
             
             <input 
               ref={stripRef} 
               type="file" 
               accept="image/*" 
-              capture="environment" 
               className="hidden" 
               onChange={e => { void handleStrip(e.target.files?.[0]); }} 
             />
@@ -754,7 +744,7 @@ export default function TechnicianForm() {
                 className="focus-ring mt-3 flex min-h-40 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b]"
               >
                 <span className="text-3xl">📷</span>
-                <span className="mt-2 text-xs font-black uppercase tracking-wider">Take Test Strip Photo</span>
+                <span className="mt-2 text-xs font-black uppercase tracking-wider">Take or Choose Test Strip Photo</span>
               </button>
             )}
             {errors.strip && <p className="mt-2 text-xs font-bold text-red-600">{errors.strip}</p>}
@@ -766,7 +756,6 @@ export default function TechnicianForm() {
               ref={generalRef} 
               type="file" 
               accept="image/*,video/*" 
-              capture="environment" 
               multiple 
               className="hidden" 
               onChange={e => { void handleGeneral(e.target.files); e.currentTarget.value = ''; }} 
@@ -792,11 +781,11 @@ export default function TechnicianForm() {
               <span className="text-3xl">⊙</span>
               <span className="mt-1 text-xs font-black uppercase tracking-wider">Add Media</span>
             </button>
-            <p className="mt-3 text-xs text-[#5d7390] font-semibold">Take photos or videos of the pool, filters, or equipment.</p>
+            <p className="mt-3 text-xs text-[#5d7390] font-semibold">Take or choose photos or videos of the pool, filters, or equipment.</p>
           </Section>
 
           {/* Section 3: Chemicals Added (REVISED TO CHECKLIST FROM SKETCH) */}
-          <Section number="3" title="Chemicals Added" detail="Required checklist">
+          <Section number="3" title="Chemicals Added" detail="optional">
             <p className="text-xs text-[#5d7390] font-semibold mb-4">Check any chemicals you added during this visit and enter the amount.</p>
             <div className="space-y-3">
               
@@ -1155,7 +1144,7 @@ export default function TechnicianForm() {
           </Section>
 
           {/* Section 4: Pool Cleaning Checklist */}
-          <Section number="4" title="Pool Cleaning" detail="Required checklist">
+          <Section number="4" title="Pool Cleaning" detail="optional">
             <p className="text-xs text-[#5d7390] font-semibold mb-4">Select everything you did, then save.</p>
             <div className="space-y-2.5">
               {CHECKLIST_ITEMS.map(item => {
