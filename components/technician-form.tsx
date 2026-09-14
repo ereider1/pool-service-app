@@ -147,8 +147,10 @@ function PhotoTile({ file, onRemove }: { file: File; onRemove: () => void }) {
 
 export default function TechnicianForm() {
   const supabase = useMemo(() => createClient(), []); 
-  const stripRef = useRef<HTMLInputElement>(null); 
-  const generalRef = useRef<HTMLInputElement>(null);
+  const stripCameraRef = useRef<HTMLInputElement>(null); 
+  const stripGalleryRef = useRef<HTMLInputElement>(null); 
+  const generalCameraRef = useRef<HTMLInputElement>(null); 
+  const generalGalleryRef = useRef<HTMLInputElement>(null); 
   
   const poolName = "Villa Sayang - Yeh Gangga";
 
@@ -719,7 +721,15 @@ export default function TechnicianForm() {
             </div>
             
             <input 
-              ref={stripRef} 
+              ref={stripCameraRef} 
+              type="file" 
+              accept="image/*" 
+              capture="environment"
+              className="hidden" 
+              onChange={e => { void handleStrip(e.target.files?.[0]); }} 
+            />
+            <input 
+              ref={stripGalleryRef} 
               type="file" 
               accept="image/*" 
               className="hidden" 
@@ -738,14 +748,26 @@ export default function TechnicianForm() {
                 </button>
               </div>
             ) : (
-              <button 
-                type="button" 
-                onClick={() => stripRef.current?.click()} 
-                className="focus-ring mt-3 flex min-h-40 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b]"
-              >
-                <span className="text-3xl">📷</span>
-                <span className="mt-2 text-xs font-black uppercase tracking-wider">Take or Choose Test Strip Photo</span>
-              </button>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => stripCameraRef.current?.click()} 
+                  className="focus-ring flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b] p-4 text-center"
+                >
+                  <span className="text-3xl">📷</span>
+                  <span className="mt-2 text-xs font-black uppercase tracking-wider">Take Photo</span>
+                  <span className="mt-1 text-[10px] text-[#5d7390] font-medium leading-tight">Use camera</span>
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => stripGalleryRef.current?.click()} 
+                  className="focus-ring flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b] p-4 text-center"
+                >
+                  <span className="text-3xl">📁</span>
+                  <span className="mt-2 text-xs font-black uppercase tracking-wider">Choose Photo</span>
+                  <span className="mt-1 text-[10px] text-[#5d7390] font-medium leading-tight">From gallery</span>
+                </button>
+              </div>
             )}
             {errors.strip && <p className="mt-2 text-xs font-bold text-red-600">{errors.strip}</p>}
           </Section>
@@ -753,7 +775,15 @@ export default function TechnicianForm() {
           {/* Section 2: Pool & Filter Photos */}
           <Section number="2" title="Pool & Filter Photos" detail={`${photos.length} ${photos.length === 1 ? 'item' : 'items'}`}>
             <input 
-              ref={generalRef} 
+              ref={generalCameraRef} 
+              type="file" 
+              accept="image/*,video/*" 
+              capture="environment"
+              className="hidden" 
+              onChange={e => { void handleGeneral(e.target.files); e.currentTarget.value = ''; }} 
+            />
+            <input 
+              ref={generalGalleryRef} 
               type="file" 
               accept="image/*,video/*" 
               multiple 
@@ -773,14 +803,25 @@ export default function TechnicianForm() {
               </div>
             )}
             
-            <button 
-              type="button" 
-              onClick={() => generalRef.current?.click()} 
-              className="focus-ring flex h-28 w-28 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b]"
-            >
-              <span className="text-3xl">⊙</span>
-              <span className="mt-1 text-xs font-black uppercase tracking-wider">Add Media</span>
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button 
+                type="button" 
+                onClick={() => generalCameraRef.current?.click()} 
+                className="focus-ring flex h-28 w-28 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b] p-2 text-center"
+              >
+                <span className="text-3xl">📷</span>
+                <span className="mt-1 text-[10px] font-black uppercase tracking-wider">Take Media</span>
+              </button>
+              
+              <button 
+                type="button" 
+                onClick={() => generalGalleryRef.current?.click()} 
+                className="focus-ring flex h-28 w-28 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b] p-2 text-center"
+              >
+                <span className="text-3xl">📁</span>
+                <span className="mt-1 text-[10px] font-black uppercase tracking-wider">Add Files</span>
+              </button>
+            </div>
             <p className="mt-3 text-xs text-[#5d7390] font-semibold">Take or choose photos or videos of the pool, filters, or equipment.</p>
           </Section>
 
