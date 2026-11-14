@@ -1237,7 +1237,7 @@ export default function TechnicianForm() {
               aria-label="Additional notes" 
               value={notes} 
               onChange={e => setNotes(e.target.value)} 
-              placeholder="Anything worth noting..." 
+              placeholder="Notes..." 
               rows={3} 
               className="focus-ring w-full resize-y rounded-2xl border border-[#c5d5e3] p-4 text-sm font-semibold outline-none" 
             />
