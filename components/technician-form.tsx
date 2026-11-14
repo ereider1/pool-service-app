@@ -777,7 +777,7 @@ export default function TechnicianForm() {
             <input 
               ref={generalCameraRef} 
               type="file" 
-              accept="image/*,video/*" 
+              accept="image/*" 
               capture="environment"
               className="hidden" 
               onChange={e => { void handleGeneral(e.target.files); e.currentTarget.value = ''; }} 
@@ -810,7 +810,7 @@ export default function TechnicianForm() {
                 className="focus-ring flex h-28 w-28 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b] p-2 text-center"
               >
                 <span className="text-3xl">📷</span>
-                <span className="mt-1 text-[10px] font-black uppercase tracking-wider">Take Media</span>
+                <span className="mt-1 text-[10px] font-black uppercase tracking-wider">TAKE PHOTO</span>
               </button>
               
               <button 
