@@ -150,7 +150,6 @@ export default function TechnicianForm() {
   const stripCameraRef = useRef<HTMLInputElement>(null); 
   const stripGalleryRef = useRef<HTMLInputElement>(null); 
   const generalCameraRef = useRef<HTMLInputElement>(null); 
-  const generalGalleryRef = useRef<HTMLInputElement>(null); 
   
   const poolName = "Villa Sayang - Yeh Gangga";
 
@@ -782,15 +781,6 @@ export default function TechnicianForm() {
               className="hidden" 
               onChange={e => { void handleGeneral(e.target.files); e.currentTarget.value = ''; }} 
             />
-            <input 
-              ref={generalGalleryRef} 
-              type="file" 
-              accept="image/*,video/*" 
-              multiple 
-              className="hidden" 
-              onChange={e => { void handleGeneral(e.target.files); e.currentTarget.value = ''; }} 
-            />
-            
             {photos.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-3">
                 {photos.map((file, i) => (
@@ -812,17 +802,8 @@ export default function TechnicianForm() {
                 <span className="text-3xl">📷</span>
                 <span className="mt-1 text-[10px] font-black uppercase tracking-wider">TAKE PHOTO</span>
               </button>
-              
-              <button 
-                type="button" 
-                onClick={() => generalGalleryRef.current?.click()} 
-                className="focus-ring flex h-28 w-28 flex-col items-center justify-center rounded-2xl border border-dashed border-[#91abc0] bg-[#f8fafc] hover:bg-[#edf3f8] transition-colors text-[#58758b] p-2 text-center"
-              >
-                <span className="text-3xl">📁</span>
-                <span className="mt-1 text-[10px] font-black uppercase tracking-wider">Add Files</span>
-              </button>
             </div>
-            <p className="mt-3 text-xs text-[#5d7390] font-semibold">Take or choose photos or videos of the pool, filters, or equipment.</p>
+            <p className="mt-3 text-xs text-[#5d7390] font-semibold">Take photos of the pool, filters, or equipment.</p>
           </Section>
 
           {/* Section 3: Chemicals Added (REVISED TO CHECKLIST FROM SKETCH) */}
